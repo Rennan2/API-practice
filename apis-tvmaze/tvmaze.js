@@ -2,9 +2,10 @@
 const MISSING_IMAGE_URL = "https://tinyurl.com/missing-tv";
 const TVMAZE_API_URL = "http://api.tvmaze.com/";
 const $showsList = $("#showsList");
+const $episodesList = $("#episodesList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-const $episodesList = $("#episodesList")
+
 
 
 /** Given a search term, search for tv shows that match that query.
@@ -16,7 +17,7 @@ const $episodesList = $("#episodesList")
 
 async function getShowsByTerm(term) {
   const response = await axios({
-    url: '${TVMAZE_API_URL}search/shows?q=${term}',
+    url: `${TVMAZE_API_URL}search/shows?q=${term}`,
     method: "GET",
      params: {
       q: term,
@@ -48,8 +49,8 @@ function populateShows(shows) {
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
-              alt="Bletchly Circle San Francisco"
+              src="${show.image}"
+              alt="${show.name}"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -92,7 +93,7 @@ $searchForm.on("submit", async function (evt) {
 
 async function getEpisodesOfShow(id) {
   const response = await axios ({
-    url: 'shows/${id}/episodes',
+    url: `shows/${id}/episodes`,
     baseURL: TVMAZE_API_URL,
     method: "GET"
   });
@@ -110,11 +111,19 @@ async function getEpisodesOfShow(id) {
   $episodesList.empty();
   for(let episode of episodes){
     const $item = $(
-      '<li>${episode.name}(season ${episode.season},episode ${episode.number})</li>'
+      `<li>${episode.name}(season ${episode.season}, episode ${episode.number})</li>`
 
     );
     $episodesList.append($item);
   }
   $episodesArea.show();
 }
+async function displayEpisodes(event) {
+  const showId = $(event.target).closest(".Show").data("show-id");
+  const episodes = await getEpisodesOfShow(showId);
+  populateEpisodes(episodes);
+}
+
+$showsList.on("click",".Show-getEpisodes", displayEpisodes);
+
 
